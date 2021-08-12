@@ -1,4 +1,4 @@
-package gorse
+package gorse_client
 
 import (
 	"encoding/json"
