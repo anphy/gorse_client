@@ -1,4 +1,4 @@
-module gorse_client
+module github.com/anphy/gorse_client
 
 go 1.14
 
