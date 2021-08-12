@@ -11,6 +11,7 @@ type GorseClient interface {
 	InsertItem(item Item) error
 	InsertItems(items []Item) error
 	InsertFeedback(fb Feedback) error
+	InsertFeedbacks(fbs []Feedback) error
 	GetRecommendItems(userID string) ([]Item, error)
 	GetPopularItems(offset, limit int) ([]Item, error)
 	GetLatestItems(offset, limit int) ([]Item, error)
@@ -62,7 +63,12 @@ func (gc *gorseclient) InsertItems(items []Item) error {
 }
 
 func (gc *gorseclient) InsertFeedback(fb Feedback) error {
-	body, err := json.Marshal(fb)
+	fbs := []Feedback{fb}
+	return gc.InsertFeedbacks(fbs)
+}
+
+func (gc *gorseclient) InsertFeedbacks(fbs []Feedback) error {
+	body, err := json.Marshal(fbs)
 	if err != nil {
 		logger.Error("err:", zap.String("err", err.Error()))
 		return err
