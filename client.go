@@ -12,9 +12,12 @@ type GorseClient interface {
 	InsertItems(items []Item) error
 	InsertFeedback(fb Feedback) error
 	InsertFeedbacks(fbs []Feedback) error
+	InsertUser(user User) error
+	InsertUsers(users []User) error
 	GetRecommendItems(userID string) ([]Item, error)
 	GetPopularItems(offset, limit int) ([]Item, error)
 	GetLatestItems(offset, limit int) ([]Item, error)
+	GetItemNeighbors(itemID string, offset, limit int) ([]Item, error)
 }
 
 func NewGorseClient(entry string, xapiKey string) GorseClient {
@@ -127,6 +130,63 @@ func (gc *gorseclient) GetPopularItems(offset, limit int) ([]Item, error) {
 func (gc *gorseclient) GetLatestItems(offset, limit int) ([]Item, error) {
 	r := Request{
 		URL:    fmt.Sprintf("%s/api/latest", gc.entry),
+		Method: "GET",
+		Params: map[string]interface{}{},
+	}
+	r.Params["offset"] = offset
+	r.Params["n"] = limit
+	result, err := r.Do()
+	if err != nil {
+		logger.Error("err:", zap.String("err", err.Error()))
+		return nil, err
+	}
+	var items []Item
+	if err = json.Unmarshal(result, &items); err != nil {
+		logger.Error("err:", zap.String("err", err.Error()))
+		return nil, err
+	}
+	return items, nil
+}
+
+func (gc *gorseclient) InsertUser(user User) error {
+	body, err := json.Marshal(user)
+	if err != nil {
+		logger.Error("err:", zap.String("err", err.Error()))
+		return err
+	}
+	r := Request{
+		URL:    fmt.Sprintf("%s/api/user", gc.entry),
+		Body:   body,
+		Method: "POST",
+	}
+	if _, err := r.Do(); err != nil {
+		logger.Error("err:", zap.String("err", err.Error()))
+		return err
+	}
+	return nil
+}
+
+func (gc *gorseclient) InsertUsers(users []User) error {
+	body, err := json.Marshal(users)
+	if err != nil {
+		logger.Error("err:", zap.String("err", err.Error()))
+		return err
+	}
+	r := Request{
+		URL:    fmt.Sprintf("%s/api/users", gc.entry),
+		Body:   body,
+		Method: "POST",
+	}
+	if _, err := r.Do(); err != nil {
+		logger.Error("err:", zap.String("err", err.Error()))
+		return err
+	}
+	return nil
+}
+
+func (gc *gorseclient) GetItemNeighbors(itemID string, offset, limit int) ([]Item, error) {
+	r := Request{
+		URL:    fmt.Sprintf("%s/api/neighbors/%s", gc.entry, itemID),
 		Method: "GET",
 		Params: map[string]interface{}{},
 	}
